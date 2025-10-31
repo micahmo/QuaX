@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:quacker/trends/_list.dart';
-import 'package:quacker/trends/_settings.dart';
-import 'package:quacker/trends/_tabs.dart';
+import 'package:quax/trends/_list.dart';
+import 'package:quax/trends/_settings.dart';
+import 'package:quax/trends/_tabs.dart';
 
 class TrendsScreen extends StatefulWidget {
   final ScrollController scrollController;
