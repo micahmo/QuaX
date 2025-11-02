@@ -505,5 +505,10 @@
   "accessibility": "Accessibilité",
   "disable_animations": "Désactiver les animations",
   "disable_animations_description": "Désactive les animations dans l'application",
-  "show_navigation_labels": "Afficher les libellés de navigation"
+  "show_navigation_labels": "Afficher les libellés de navigation",
+  "loginNameTwitterAcc": "Nom d'utilisateur",
+  "passwordTwitterAcc": "Mot de passe",
+  "emailTwitterAcc": "e-mail",
+  "login": "Connexion",
+  "login_success": "Connexion réussie !"
 }

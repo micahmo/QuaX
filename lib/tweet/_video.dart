@@ -72,6 +72,28 @@ class _TweetVideoState extends State<TweetVideo> {
   VideoPlayerController? _videoController;
   ChewieController? _chewieController;
 
+  Future<void> _restartVideo() async {
+    try {
+      await _chewieController?.pause();
+    } catch (_) {}
+    _chewieController?.dispose();
+    await _videoController?.dispose();
+
+    setState(() {
+      _chewieController = null;
+      _videoController = null;
+    });
+
+    try {
+      await _loadVideo();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint('Failed to restart video: $e');
+    }
+  }
+
   Future<void> _loadVideo() async {
     var urls = await widget.metadata.streamUrlsBuilder();
     var streamUrl = urls.streamUrl;
@@ -161,32 +183,71 @@ class _TweetVideoState extends State<TweetVideo> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: _loadVideo(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return AspectRatio(
-              aspectRatio: widget.metadata.aspectRatio,
-              child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 150),
-                  child: _Video(
-                      controller: _chewieController!,
-                      alwaysPlay: widget.alwaysPlay)),
-            );
-          }
+      future: _chewieController == null ? _loadVideo() : Future.value(),
+      builder: (context, snapshot) {
+        final hasError = snapshot.hasError;
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+        final hasVideo = _chewieController != null;
+
+        if (isLoading && !hasVideo) {
           return const Center(child: CircularProgressIndicator());
-        });
+        }
+
+        if (hasError && !hasVideo) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white, size: 48),
+                const SizedBox(height: 12),
+                const Text('Failed to load video'),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: _restartVideo,
+                  child: const Text('Restart Video Player'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            AspectRatio(
+              aspectRatio: widget.metadata.aspectRatio,
+              child: hasVideo
+                  ? Chewie(controller: _chewieController!)
+                  : const SizedBox.shrink(),
+            ),
+            if (hasError)
+              Positioned(
+                right: 8,
+                bottom: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  onPressed: _restartVideo,
+                  tooltip: 'Restart player',
+                ),
+              ),
+          ],
+        );
+      },
+    );
   }
+
 
   @override
   void dispose() {
-    // TODO: These now seem to get called when the video player goes fullscreen. They shouldn't though
-    _videoController?.dispose();
-    _chewieController?.dispose();
-
-    WakelockPlus.disable();
-
+    if (_chewieController?.isFullScreen ?? false) return;
+    if (mounted) {
+      _chewieController?.dispose();
+      _videoController?.dispose();
+      WakelockPlus.disable();
+    }
     super.dispose();
   }
 }

@@ -89,8 +89,6 @@ Future checkForUpdates(context) async {
 Future checkForAccounts(context) async {
   Logger.root.info('Checking for accounts');
 
-  PackageInfo packageInfo = await PackageInfo.fromPlatform();
-
   final accounts = await getAccounts();
   if (accounts.isEmpty) {
     await showDialog(
@@ -444,17 +442,19 @@ class _FritterAppState extends State<FritterApp> {
                                   ? darkDynamic
                                   : ColorScheme.fromSeed(
                                       seedColor: themeColors[_themeColor]!
-                                          .harmonizeWith(lightDynamic?.primary ?? Colors.transparent),
+                                          .harmonizeWith(darkDynamic?.primary ?? Colors.transparent),
                                       brightness: Brightness.dark))
                               ?.copyWith(surface: Colors.black)
                           : (_themeColor == 'accent'
                               ? darkDynamic
                               : ColorScheme.fromSeed(
                                   seedColor: themeColors[_themeColor]!
-                                      .harmonizeWith(lightDynamic?.primary ?? Colors.transparent),
+                                      .harmonizeWith(darkDynamic?.primary ?? Colors.transparent),
                                   brightness: Brightness.dark))),
                       navigationBarTheme:
                           (_trueBlack == true ? NavigationBarThemeData(backgroundColor: Colors.black) : null),
+                      scaffoldBackgroundColor: (_trueBlack == true ? Colors.black : null),
+                      appBarTheme: (_trueBlack == true ? AppBarThemeData(backgroundColor: Colors.black) : null),
                       pageTransitionsTheme: _disableAnimations == true
                           ? PageTransitionsTheme(
                               builders: {

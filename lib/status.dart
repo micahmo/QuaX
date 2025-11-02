@@ -86,6 +86,18 @@ class _StatusScreenState extends State<_StatusScreen> {
           _seenAlready.add(chain.id);
         }
 
+        // No new tweets returned-> stop pagination
+        if (chains.isEmpty || result.cursorBottom == null) {
+          _pagingController.appendLastPage(chains);
+          return;
+        }
+
+        // Prevent infinite loop when cursor doesn’t advance
+        if (result.cursorBottom == _pagingController.nextPageKey) {
+          _pagingController.appendLastPage(chains);
+          return;
+        }
+
         _pagingController.appendPage(chains, result.cursorBottom);
 
         // If we're on the first page, we want to scroll to the selected status
@@ -121,13 +133,13 @@ class _StatusScreenState extends State<_StatusScreen> {
                 key: ValueKey(chain.id),
                 controller: _scrollController,
                 index: index,
-                highlightColor: Colors.white.withValues(alpha: 1),
+                highlightColor: Theme.of(context).colorScheme.primary,
                 child: TweetConversation(
                     id: chain.id,
                     tweets: chain.tweets,
                     username: null,
                     isPinned: chain.isPinned,
-                    tweetOpened: widget.tweetOpened ?? false),
+                    tweetOpened: widget.tweetOpened),
               );
             },
             firstPageErrorIndicatorBuilder: (context) => FullPageErrorWidget(

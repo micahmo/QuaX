@@ -18,7 +18,6 @@ import 'package:quax/ui/dates.dart';
 import 'package:quax/ui/errors.dart';
 import 'package:quax/user.dart';
 import 'package:quax/utils/iterables.dart';
-import 'package:quax/utils/misc.dart';
 import 'package:quax/utils/translation.dart';
 import 'package:quax/utils/urls.dart';
 import 'package:html_unescape/html_unescape.dart';
@@ -293,6 +292,18 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
     );
   }
 
+  Color? buttonsColor(BuildContext c) {
+    if (Theme.of(c).textTheme.bodyMedium == null || Theme.of(c).textTheme.bodyMedium!.color == null) return null;
+    final hsl = HSLColor.fromColor(Theme.of(c).textTheme.bodyMedium!.color!);
+    const lightnessFactorDark = 0.5;
+    const lightnessFactorLight = 4.0;
+    final adjustedLightness =
+        (hsl.lightness * (hsl.lightness > 0.5 ? lightnessFactorDark : lightnessFactorLight)).clamp(0.0, 1.0);
+    final adjustedSaturation = (hsl.saturation * 0.2).clamp(0.0, 1.0);
+    final newHsl = hsl.withLightness(adjustedLightness).withSaturation(adjustedSaturation);
+    return newHsl.toColor();
+  }
+
   @override
   Widget build(BuildContext context) {
     final prefs = PrefService.of(context, listen: false);
@@ -438,11 +449,8 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
     Widget translateButton;
     switch (_translationStatus) {
       case TranslationStatus.original:
-        translateButton = _createFooterIconButton(
-            Icons.translate,
-            Colors.blue.harmonizeWith(Theme.of(context).colorScheme.primary),
-            null,
-            () async => onClickTranslate(locale));
+        translateButton =
+            _createFooterIconButton(Icons.translate, buttonsColor(context), null, () async => onClickTranslate(locale));
         break;
       case TranslationStatus.translating:
         translateButton = const Padding(
@@ -458,8 +466,8 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
             () async => onClickTranslate(locale));
         break;
       case TranslationStatus.translated:
-        translateButton = _createFooterIconButton(Icons.translate,
-            Colors.green.harmonizeWith(Theme.of(context).colorScheme.primary), null, () async => onClickShowOriginal());
+        translateButton = _createFooterIconButton(
+            Icons.translate, Theme.of(context).colorScheme.primary, null, () async => onClickShowOriginal());
         break;
     }
 
@@ -565,28 +573,32 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
                               child: Row(
                                 children: [
                                   _createFooterTextButton(
-                                      Icons.comment,
+                                      Icons.mode_comment_outlined,
                                       tweet.replyCount != null ? numberFormat.format(tweet.replyCount) : '',
-                                      null,
+                                      buttonsColor(context),
                                       () => onClickOpenTweet(tweet)),
                                   if (tweet.retweetCount != null && tweet.quoteCount != null)
                                     _createFooterTextButton(
-                                        Icons.repeat, numberFormat.format((tweet.retweetCount! + tweet.quoteCount!))),
+                                        Icons.repeat,
+                                        numberFormat.format((tweet.retweetCount! + tweet.quoteCount!)),
+                                        buttonsColor(context)),
                                   if (tweet.favoriteCount != null)
-                                    _createFooterTextButton(
-                                        Icons.favorite_border, numberFormat.format(tweet.favoriteCount)),
+                                    _createFooterTextButton(Icons.favorite_border,
+                                        numberFormat.format(tweet.favoriteCount), buttonsColor(context)),
                                   const SizedBox(
                                     width: 8.0,
                                   ),
                                   Consumer<SavedTweetModel>(builder: (context, model, child) {
                                     var isSaved = model.isSaved(tweet.idStr!);
                                     if (isSaved) {
-                                      return _createFooterIconButton(Icons.bookmark, null, 1, () async {
+                                      return _createFooterIconButton(
+                                          Icons.bookmark, Theme.of(context).colorScheme.primary, 1, () async {
                                         await model.deleteSavedTweet(tweet.idStr!);
                                         setState(() {});
                                       });
                                     } else {
-                                      return _createFooterIconButton(Icons.bookmark_border, null, 0, () async {
+                                      return _createFooterIconButton(Icons.bookmark_border, buttonsColor(context), 0,
+                                          () async {
                                         await model.saveTweet(tweet.idStr!, tweet.user?.idStr, tweet.toJson());
                                         setState(() {});
                                       });
@@ -594,7 +606,7 @@ class TweetTileState extends State<TweetTile> with SingleTickerProviderStateMixi
                                   }),
                                   _createFooterIconButton(
                                     Icons.share,
-                                    null,
+                                    buttonsColor(context),
                                     null,
                                     () async {
                                       createSheetButton(title, icon, onTap) => ListTile(

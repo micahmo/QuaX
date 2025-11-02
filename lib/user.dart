@@ -265,6 +265,18 @@ class UserWithExtra extends User {
     return json;
   }
 
+  factory UserWithExtra.fromNonLegacyJson(Map<String, dynamic> json) {
+    var userWithExtra = UserWithExtra.fromJson(json["legacy"]);
+    userWithExtra
+      ..name = json["core"]?["name"] ?? userWithExtra.name
+      ..createdAt = convertTwitterDateTime(json["core"]?["created_at"]) ?? userWithExtra.createdAt
+      ..screenName = json["core"]?["screen_name"] ?? userWithExtra.screenName
+      ..verified = json["is_blue_verified"] ?? userWithExtra.verified
+      ..profileImageUrlHttps = json["avatar"]?["image_url"] ?? userWithExtra.profileImageUrlHttps
+      ..idStr = json["rest_id"] ?? userWithExtra.idStr;
+    return userWithExtra;
+  }
+
   factory UserWithExtra.fromJson(Map<String, dynamic> json) {
     Logger("").info(json);
     var userWithExtra = UserWithExtra()
