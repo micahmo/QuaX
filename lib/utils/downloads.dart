@@ -19,7 +19,8 @@ Future<void> downloadUriToPickedFile(BuildContext context, Uri uri, String fileN
     onStart();
     var responseTask = downloadFile(context, uri);
 
-    var storagePermission = await Permission.storage.request();
+    var storagePermission = await _requestStoragePermission(context);
+    if (!storagePermission) return;
 
     var response = await responseTask;
     if (response == null) {
@@ -41,8 +42,26 @@ Future<void> downloadUriToPickedFile(BuildContext context, Uri uri, String fileN
       return;
     }
 
-    // Otherwise, check we have the storage permission
-    if (!storagePermission.isGranted && context.mounted) {
+    // Finally, save to the user-defined directory
+    var savedFile = p.join(downloadPath, sanitizedFilename);
+    await File(savedFile).writeAsBytes(response);
+    onSuccess();
+  } catch (e) {
+    showSnackBar(context, icon: '🙊', message: e.toString());
+  }
+}
+
+Future<bool> _requestStoragePermission(BuildContext context) async {
+  var status = await Permission.storage.status;  // Deprecated in Android 13+
+
+  if (Platform.isAndroid) {
+    status = await Permission.manageExternalStorage.request();
+  } else if (status.isDenied) {
+    status = await Permission.storage.request();
+  }
+
+  if (!status.isGranted) {
+    if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(L10n.current.permission_not_granted),
@@ -52,18 +71,11 @@ Future<void> downloadUriToPickedFile(BuildContext context, Uri uri, String fileN
           ),
         ),
       );
-
-      await openAppSettings();
-      return;
     }
-
-    // Finally, save to the user-defined directory
-    var savedFile = p.join(downloadPath, sanitizedFilename);
-    await File(savedFile).writeAsBytes(response);
-    onSuccess();
-  } catch (e) {
-    showSnackBar(context, icon: '🙊', message: e.toString());
+    return false;
   }
+
+  return true;
 }
 
 class UnableToSaveMedia {

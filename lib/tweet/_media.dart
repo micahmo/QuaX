@@ -138,8 +138,11 @@ class _TweetMediaState extends State<TweetMedia> {
 
   @override
   Widget build(BuildContext context) {
-    var largestAspectRatio =
-        widget.media.map((e) => ((e.sizes!.large!.w) ?? 1) / ((e.sizes!.large!.h) ?? 1)).reduce(math.max);
+    var largestAspectRatio = 1.0;
+    final aspectRatios = widget.media.map((e) => ((e.sizes!.large!.w) ?? 1) / ((e.sizes!.large!.h) ?? 1)).toSet();
+    if (aspectRatios.length == 1) {
+      largestAspectRatio = aspectRatios.first;
+    }
 
     return Consumer<TweetContextState>(builder: (context, model, child) {
       if (model.hideSensitive && (widget.sensitive ?? false)) {
@@ -312,7 +315,12 @@ class _TweetMediaThing extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget media;
     if (item.type == 'animated_gif') {
-      media = TweetVideo(metadata: TweetVideoMetadata.fromMedia(item), loop: true, username: username, alwaysPlay: true, disableControls: true);
+      media = TweetVideo(
+          metadata: TweetVideoMetadata.fromMedia(item),
+          loop: true,
+          username: username,
+          alwaysPlay: true,
+          disableControls: true);
     } else if (item.type == 'video') {
       media = TweetVideo(metadata: TweetVideoMetadata.fromMedia(item), loop: false, username: username);
     } else if (item.type == 'photo') {

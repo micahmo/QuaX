@@ -41,7 +41,7 @@ class TweetVideoMetadata {
         .where((e) => e.bitrate != null)
         .where((e) => e.url != null)
         .where((e) => e.contentType == 'video/mp4')
-        .sorted((a, b) => a.bitrate!.compareTo(b.bitrate!))
+        .sorted((a, b) => -(a.bitrate!.compareTo(b.bitrate!)))
         .map((e) => e.url)
         .firstWhereOrNull((e) => e != null);
 
@@ -139,7 +139,6 @@ class _TweetVideoState extends State<TweetVideo> {
               fileName,
               prefs: PrefService.of(context),
               onStart: () {
-                Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(L10n.of(context).downloading_media),
                 ));
