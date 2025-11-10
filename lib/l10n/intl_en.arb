@@ -448,5 +448,9 @@
   "autoplay_videos_description": "If enabled, videos will start playing without user interaction",
   "export_accounts": "Export accounts?",
   "export_accounts_details": "⚠\uFE0F This exports connection cookies of your x.com accounts. Do not share this backup with anyone.",
-  "import_backup": "Import backup"
+  "import_backup": "Import backup",
+  "allow_background_play": "Background play",
+  "allow_background_play_description": "Allow to play in the background",
+  "allow_background_play_other_apps": "Other apps in background",
+  "allow_background_play_other_apps_description": "Allow other apps to play in the background"
 }

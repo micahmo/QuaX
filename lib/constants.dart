@@ -15,6 +15,7 @@ const optionMediaSize = 'media.size';
 const optionMediaDefaultMute = 'media.mute';
 const optionMediaDefaultLoop = 'media.loop';
 const optionMediaDefaultAutoPlay = 'media.auto_play';
+const optionMediaBackgroundPlayback = 'media.allow_background_play';
 
 const optionDownloadType = 'download.type';
 const optionDownloadPath = 'download.path';

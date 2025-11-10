@@ -522,5 +522,9 @@
   "autoplay_videos_description": "Si activé, les vidéos se lancent automatiquement",
   "export_accounts": "Exporter les comptes ?",
   "export_accounts_details": "⚠\uFE0F Ceci exporte les cookies de connexion de vos comptes x.com. Ne partagez jamais cette sauvegarde.",
-  "import_backup": "Importer une sauvegarde"
+  "import_backup": "Importer une sauvegarde",
+  "allow_background_play": "Lecture en arrière-plan",
+  "allow_background_play_description": "Poursuivre la lecture des vidéos lorsque vous changez d'application",
+  "allow_background_play_other_apps": "Applis externes en arrière plan",
+  "allow_background_play_other_apps_description": "Conserver la lecture en arrière-plan des applications externes lorsque vous lancez une vidéo"
 }

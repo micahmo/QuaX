@@ -495,8 +495,6 @@ class _MaterialControlsState extends State<FritterMaterialControls> with SingleT
   }
 
   void _playPause() {
-    final isFinished = _latestValue.position >= _latestValue.duration;
-
     setState(() {
       if (controller.value.isPlaying) {
         notifier.hideStuff = false;
@@ -510,9 +508,6 @@ class _MaterialControlsState extends State<FritterMaterialControls> with SingleT
             controller.play();
           });
         } else {
-          if (isFinished) {
-            controller.seekTo(Duration.zero);
-          }
           controller.play();
         }
       }

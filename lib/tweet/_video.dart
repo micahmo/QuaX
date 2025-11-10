@@ -73,7 +73,7 @@ class _TweetVideoState extends State<TweetVideo> {
   VideoPlayerController? _videoController;
   ChewieController? _chewieController;
 
-  Future<void> _restartVideo(bool prefLoop, bool prefAutoPlay) async {
+  Future<void> _restartVideo(bool prefLoop, prefAutoPlay, prefBackgroundPlayback) async {
     try {
       await _chewieController?.pause();
     } catch (_) {}
@@ -86,7 +86,7 @@ class _TweetVideoState extends State<TweetVideo> {
     });
 
     try {
-      await _loadVideo(prefLoop, prefAutoPlay);
+      await _loadVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback);
       if (mounted) {
         setState(() {});
       }
@@ -95,13 +95,14 @@ class _TweetVideoState extends State<TweetVideo> {
     }
   }
 
-  Future<void> _loadVideo(bool prefLoop, bool prefAutoPlay) async {
+  Future<void> _loadVideo(bool prefLoop, bool prefAutoPlay, bool prefBackgroundPlayback) async {
     var urls = await widget.metadata.streamUrlsBuilder();
     var streamUrl = urls.streamUrl;
     var downloadUrl = urls.downloadUrl;
 
     _videoController = VideoPlayerController.networkUrl(Uri.parse(streamUrl),
-        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: widget.disableControls));
+        videoPlayerOptions:
+            VideoPlayerOptions(mixWithOthers: widget.disableControls, allowBackgroundPlayback: prefBackgroundPlayback));
 
     var model = context.read<VideoContextState>();
     var volume = model.isMuted ? 0.0 : _videoController!.value.volume;
@@ -188,8 +189,9 @@ class _TweetVideoState extends State<TweetVideo> {
     final prefs = PrefService.of(context);
     final prefLoop = prefs.get(optionMediaDefaultLoop);
     final prefAutoPlay = prefs.get(optionMediaDefaultAutoPlay);
+    final prefBackgroundPlayback = prefs.get(optionMediaBackgroundPlayback);
     return FutureBuilder(
-      future: _chewieController == null ? _loadVideo(prefLoop, prefAutoPlay) : Future.value(),
+      future: _chewieController == null ? _loadVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback) : Future.value(),
       builder: (context, snapshot) {
         final hasError = snapshot.hasError;
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
@@ -209,7 +211,7 @@ class _TweetVideoState extends State<TweetVideo> {
                 const Text('Failed to load video'),
                 const SizedBox(height: 12),
                 ElevatedButton(
-                  onPressed: () => _restartVideo(prefLoop, prefAutoPlay),
+                  onPressed: () => _restartVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback),
                   child: const Text('Restart Video Player'),
                 ),
               ],
@@ -222,7 +224,24 @@ class _TweetVideoState extends State<TweetVideo> {
           children: [
             AspectRatio(
               aspectRatio: widget.metadata.aspectRatio,
-              child: hasVideo ? Chewie(controller: _chewieController!) : const SizedBox.shrink(),
+              child: hasVideo
+                  ? VisibilityDetector(
+                      key: UniqueKey(),
+                      onVisibilityChanged: (info) {
+                        if (mounted) {
+                          if (info.visibleFraction == 0.0 && !_chewieController!.isFullScreen) {
+                            if (widget.alwaysPlay) {
+                              _chewieController?.setVolume(0.0);
+                            } else {
+                              _chewieController?.pause();
+                            }
+                          }
+                        }
+                      },
+                      child: Chewie(
+                        controller: _chewieController!,
+                      ))
+                  : const SizedBox.shrink(),
             ),
             if (hasError)
               Positioned(
@@ -230,7 +249,7 @@ class _TweetVideoState extends State<TweetVideo> {
                 bottom: 8,
                 child: IconButton(
                   icon: const Icon(Icons.refresh, color: Colors.white),
-                  onPressed: () => _restartVideo(prefLoop, prefAutoPlay),
+                  onPressed: () => _restartVideo(prefLoop, prefAutoPlay, prefBackgroundPlayback),
                   tooltip: 'Restart player',
                 ),
               ),
@@ -249,35 +268,6 @@ class _TweetVideoState extends State<TweetVideo> {
       WakelockPlus.disable();
     }
     super.dispose();
-  }
-}
-
-class _Video extends StatefulWidget {
-  final ChewieController controller;
-  final bool alwaysPlay;
-
-  const _Video({required this.controller, required this.alwaysPlay});
-
-  @override
-  State<_Video> createState() => _VideoState();
-}
-
-class _VideoState extends State<_Video> {
-  @override
-  Widget build(BuildContext context) {
-    return VisibilityDetector(
-      key: UniqueKey(),
-      onVisibilityChanged: (info) {
-        if (mounted) {
-          if (!widget.alwaysPlay && info.visibleFraction == 0 && !widget.controller.isFullScreen) {
-            widget.controller.pause();
-          }
-        }
-      },
-      child: Chewie(
-        controller: widget.controller,
-      ),
-    );
   }
 }
 
