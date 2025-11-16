@@ -128,6 +128,11 @@ class SettingsGeneralFragment extends StatelessWidget {
             pref: optionShouldCheckForUpdates,
             subtitle: Text(L10n.of(context).should_check_for_updates_description),
           ),
+          PrefSwitch(
+            title: Text(L10n.of(context).option_confirm_close_label),
+            subtitle: Text(L10n.of(context).option_confirm_close_description),
+            pref: optionConfirmClose,
+          ),
           PrefDropdown(
               fullWidth: false,
               title: Text(L10n.of(context).default_tab),

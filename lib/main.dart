@@ -189,6 +189,7 @@ Future<void> main() async {
   setTimeagoLocales();
 
   final prefService = await PrefServiceShared.init(prefix: 'pref_', defaults: {
+    optionConfirmClose: true,
     optionDisableAnimations: false,
     optionTextScaleFactor: 1.0,
     optionDisableScreenshots: false,
@@ -601,26 +602,37 @@ class _DefaultPageState extends State<DefaultPage> {
           prefix: L10n.of(context).unable_to_run_the_database_migrations);
     }
 
-    return WillPopScope(
-        onWillPop: () async {
-          var result = await showDialog<bool>(
-              context: context,
-              builder: (c) => AlertDialog(
-                    title: Text(L10n.current.are_you_sure),
-                    content: Text(L10n.current.confirm_close_fritter),
-                    actions: [
-                      TextButton(
-                        child: Text(L10n.current.no),
-                        onPressed: () => Navigator.pop(c, false),
-                      ),
-                      TextButton(
-                        child: Text(L10n.current.yes),
-                        onPressed: () => Navigator.pop(c, true),
-                      ),
-                    ],
-                  ));
+    return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+          var prefService = PrefService.of(context);
+          if (!prefService.get(optionConfirmClose)) {
+            SystemNavigator.pop();
+            return;
+          }
 
-          return result ?? false;
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (c) => AlertDialog(
+              title: Text(L10n.current.are_you_sure),
+              content: Text(L10n.current.confirm_close_fritter),
+              actions: [
+                TextButton(
+                  child: Text(L10n.current.no),
+                  onPressed: () => Navigator.pop(c, false),
+                ),
+                TextButton(
+                  child: Text(L10n.current.yes),
+                  onPressed: () => Navigator.pop(c, true),
+                ),
+              ],
+            ),
+          );
+
+          if (confirmed == true && context.mounted) {
+            SystemNavigator.pop();
+          }
         },
         child: const HomeScreen());
   }
