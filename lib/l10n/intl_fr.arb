@@ -5,7 +5,7 @@
   "@feed": {},
   "saved": "Enregistré",
   "@saved": {},
-  "joined": "S'est inscrit·e le {date}",
+  "joined": "S'est inscrit(e) le {date}",
   "@joined": {},
   "no_results": "Aucun résultat",
   "@no_results": {},
