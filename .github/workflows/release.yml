@@ -2,12 +2,6 @@ name: release
 
 on:
   workflow_dispatch:
-    inputs:
-      release_notes:
-        description: 'Release notes'
-        required: false
-        type: string
-        default: ''
   push:
     tags:
       - '*'
@@ -70,7 +64,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
           prerelease: false
-          body: ${{ github.event.inputs.release_notes || 'No release notes provided' }}
+          body_path: changelog.md
           files: |
             build/app/outputs/release/*.apk
 
